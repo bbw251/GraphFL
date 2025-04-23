@@ -109,13 +109,53 @@ def lp(adj, alpha, y_train, train_mask, y_test):
 
 
 
+# def selftraining(prediction, no_class, t, idx_train, labels):
+
+#     labels_ext = np.argmax(prediction, axis=1)
+#     confidence = np.max(prediction, axis=1)
+#     sorted_index = np.argsort(-confidence)
+
+   
+#     index = []
+#     count = [0 for i in range(no_class)]
+#     for i in sorted_index:
+#         for j in range(no_class):
+#             if labels_ext[i] == j and count[j] < t and i not in idx_train:
+#                 index.append(i)
+#                 count[j] += 1
+
+#     print('index:', index)
+#     correct = 0
+#     for idx in index:
+#         if labels_ext[idx] == labels[idx]:
+#             correct += 1
+#     print('#cor:', correct, '#total:', len(index), 'acc:', correct/len(index))
+
+#     labels_ext[list(idx_train)] = labels[list(idx_train)]
+#     idx_train_ext = list(idx_train) + index
+#     #print('#train ext:', len(idx_train_ext))
+
+#     print('#train:', (idx_train))
+#     print('label:', labels[idx_train])
+#     print('#train ext:', (idx_train_ext))
+#     print('label ext:', labels_ext[idx_train_ext])
+
+#     return idx_train_ext, labels_ext
+
 def selftraining(prediction, no_class, t, idx_train, labels):
+
+    # Convert idx_train to a list (or NumPy array) to allow indexing
+    idx_train = list(idx_train)  # This ensures idx_train is a list
 
     labels_ext = np.argmax(prediction, axis=1)
     confidence = np.max(prediction, axis=1)
     sorted_index = np.argsort(-confidence)
 
-   
+    # Check if any idx_train values are out of bounds
+    if np.any(np.array(idx_train) >= len(labels)) or np.any(np.array(idx_train) < 0):
+        print("Error: idx_train contains indices that are out of bounds.")
+        return idx_train, labels_ext  # Early exit to prevent further errors
+
     index = []
     count = [0 for i in range(no_class)]
     for i in sorted_index:
@@ -133,15 +173,13 @@ def selftraining(prediction, no_class, t, idx_train, labels):
 
     labels_ext[list(idx_train)] = labels[list(idx_train)]
     idx_train_ext = list(idx_train) + index
-    #print('#train ext:', len(idx_train_ext))
 
     print('#train:', (idx_train))
-    print('label:', labels[idx_train])
+    print('label:', labels[list(idx_train)])  # Use list(idx_train) to index labels
     print('#train ext:', (idx_train_ext))
     print('label ext:', labels_ext[idx_train_ext])
 
     return idx_train_ext, labels_ext
-
 
 
 def read_data(file):
@@ -755,5 +793,3 @@ def exp_details(args):
     print(f'    Local Epochs finetune      : {args.local_ep_test}')
 
     return
-
-
